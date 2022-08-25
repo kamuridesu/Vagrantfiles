@@ -108,7 +108,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.provision "shell" do |s|
     s.inline = <<-SHELL
-      echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDndE9UgTX+CTwEom6e1WGliJk9CE9FWLrD7+tQzNUUlKP5jdztClN8m9CCLg+XDpIv+ZhZpwNznOUgnKV7g9Pfj90chxtSjnuoLHcqG4a9sEs6YmLtkFKs9QuWZfCGS5FgcU807T+d8Rm85CAuPfrMnjg+BZmP8Re8f750nKTRNhJuy1EnijAOSXPVihuI9OM5cT+OmCxVJhTANjQtxDtrb1a3vsL4rJ4YbtqiVLHO6BG0POLpGoYalrEC7pUrhcQHLuWCY8NkNy4zZtZlkuVK19Get/NzqCYDr8edirhfcLKeH1r51llZ6/pTUHUVpdr4lQfjCXK8RquugafxnU3xu9qWoa0YcY+dNJdwOjj0Fd9UDiTu9FL5JTjjkmT+g1lH9yzfBaNz2y/9F/5L77iumsj1MXIIWRJnrwWBkGx70CLD1g2sbpElEF1FWa+KnBEfkq9+PyDzuwzyOB06Do4HCW71FsSLU9/dQnOUiwWiaopcSJFmWP9wu7bEGRQnm9c= kamuri@archbox" >> /home/vagrant/.ssh/authorized_keys
+      echo "ssh pub key" >> /home/vagrant/.ssh/authorized_keys
     SHELL
   end
 end
