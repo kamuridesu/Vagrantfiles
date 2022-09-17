@@ -1,0 +1,53 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/buster64"
+  config.vm.network "private_network", ip: "192.168.56.10"
+  config.vm.provider "virtualbox" do |vb|
+    vb.memory = "2048"
+    vb.cpus = "2"
+  end
+  config.vm.provision "shell", inline: <<-SHELL
+    apt-get update
+    apt-get upgrade -y
+    apt-get install -y htop vim apt-transport-https ca-certificates curl software-properties-common gnupg docker docker.io
+
+    touch /etc/apt/sources.list.d/kubernetes.list
+    echo "deb http://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+    apt-get update -y
+    apt-get install -y kubelet kubeadm kubectl kubernetes-cni
+
+    sysctl net.bridge.bridge-nf-call-iptables=1
+
+    curl -L https://github.com/containerd/containerd/releases/download/v1.6.8/containerd-1.6.8-linux-amd64.tar.gz --output /tmp/containerd-1.6.8-linux-amd64.tar.gz
+    cd /tmp/
+    tar Cxzvf /usr/local containerd-1.6.8-linux-amd64.tar.gz
+
+    mkdir -p /usr/local/lib/systemd/system/
+    curl -L https://raw.githubusercontent.com/containerd/containerd/main/containerd.service --output /usr/local/lib/systemd/system/containerd.service
+    systemctl daemon-reload
+    systemctl enable --now containerd
+
+    curl -L https://github.com/opencontainers/runc/releases/download/v1.1.4/runc.amd64 --output /tmp/runc.amd64
+    cd /tmp/
+    install -m 755 runc.amd64 /usr/local/sbin/runc
+
+    curl -L https://github.com/containernetworking/plugins/releases/download/v1.1.1/cni-plugins-linux-amd64-v1.1.1.tgz --output /tmp/cni-plugins-linux-amd64-v1.1.1.tgz
+    cd /tmp/
+    mkdir -p /opt/cni/bin
+    tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.1.1.tgz
+
+    mkdir -p /etc/containerd/
+    containerd config default > /etc/containerd/config.toml
+    sed -i "s/systemdCgroup = false/systemdCgroup = true/" /etc/containerd/config.toml
+
+    kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-cert-extra-sans=192.168.56.10
+    export KUBECONFIG=/etc/kubernetes/admin.conf
+
+    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/tigera-operator.yaml
+    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/custom-resources.yaml
+
+  SHELL
+end
